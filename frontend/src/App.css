@@ -1,0 +1,41 @@
+/* src/App.css */
+
+.App {
+  text-align: center;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+}
+
+.task-container {
+  margin: 20px;
+}
+
+.task-container input {
+  padding: 10px;
+  margin-right: 10px;
+  width: 300px;
+}
+
+.task-container button {
+  padding: 10px;
+}
+
+.task-container ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.task-container li {
+  margin: 10px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-container li button {
+  padding: 5px 10px;
+}
