@@ -18,6 +18,13 @@ services:
       - "3001:3001"
     networks:
       - devops-network
+  
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    networks:
+      - devops-network
 
 networks:
   devops-network:

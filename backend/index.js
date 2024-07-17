@@ -1,24 +1,36 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
-const cors = require('cors'); // Import cors
+const cors = require('cors');
+const redis = require('./config/redisClient'); // Import the Redis client
+
 const app = express();
 const db = new sqlite3.Database(':memory:');
 
-app.use(cors()); // Use cors middleware
+app.use(cors());
 app.use(express.json());
 
 db.serialize(() => {
   db.run("CREATE TABLE tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, task TEXT)");
 });
 
-app.get('/tasks', (req, res) => {
-  db.all("SELECT * FROM tasks", [], (err, rows) => {
-    if (err) {
-      res.status(500).send(err.message);
-      return;
+app.get('/tasks', async (req, res) => {
+  try {
+    const cachedTasks = await redis.get('tasks');
+    if (cachedTasks) {
+      return res.json(JSON.parse(cachedTasks));
     }
-    res.json(rows);
-  });
+
+    db.all("SELECT * FROM tasks", [], (err, rows) => {
+      if (err) {
+        res.status(500).send(err.message);
+        return;
+      }
+      redis.set('tasks', JSON.stringify(rows));
+      res.json(rows);
+    });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
 });
 
 app.post('/tasks', (req, res) => {
@@ -28,6 +40,7 @@ app.post('/tasks', (req, res) => {
       res.status(500).send(err.message);
       return;
     }
+    redis.del('tasks'); // Invalidate cache
     res.status(201).json({ id: this.lastID });
   });
 });
@@ -39,6 +52,7 @@ app.delete('/tasks/:id', (req, res) => {
       res.status(500).send(err.message);
       return;
     }
+    redis.del('tasks'); // Invalidate cache
     res.status(204).send();
   });
 });
